@@ -1,0 +1,14 @@
+/out
+/build.properties
+/.vscode
+/target
+/.idea
+
+#metals
+.metals
+.bloop
+/project/**/metals.sbt
+
+.bsp
+
+/project/**/target
