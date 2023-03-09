@@ -64,5 +64,6 @@ object CurriesAndPAF extends App{
   byName(parenMethod())
   byName((()=>123)())
   // byName(parenMethod) doesn't work for scala 3
-  byFunc(parenMethod)
+  // parameterless methods can't be used in byFunc
+  byFunc(parenMethod) // ETA expansion 
 }
