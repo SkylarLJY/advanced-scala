@@ -86,8 +86,49 @@ object ThreadCommunication extends App:
     })
     
   
-  bufferProdCons()
+  // bufferProdCons()
 
   // multiple producers and consumers on the same buffer 
   // can't control if it's notifying a consumer or a producer when either calls notify()->check after waking up 
-  
+
+  // notify() vs notifyAll() in the example above: notifyAll() can preven deadlock (eg. full buffer with all producers awake)
+
+  /* exercise:
+   1. when using notify() & notifyAll() makes a difference: 
+      - when the producers and consumers can produce & consume multiple values 
+      - when multiple threads are needed to consume/produce a value
+      - threads are blocking on one critical block but can execute in parallel otherwise 
+   2. deadlock: holding a self lock & waiting for the other instance's lock, like waiting for the other person to hang up
+   3. livelock: keep yielding execution to each other
+  */
+
+  case class Friend(name: String):
+    def call(other: Friend): Unit =
+      this.synchronized {
+        println(s"calling $other")
+        other.waitHangUp(this)
+        println("can finish the conversation now")
+      }
+    
+    def waitHangUp(other: Friend): Unit =
+      this.synchronized {
+        println(s"$name is hanging up the phone")
+      }
+
+    var rightSide = true
+    def pickSide(other: Friend): Unit = 
+      while this.rightSide == other.rightSide do 
+        println(s"$name can't be on the same side with $other")
+        rightSide = !rightSide
+        Thread.sleep(500)
+
+  val sam = Friend("Sam")
+  val lily = Friend("Lily")
+
+  // dead lock
+  // new Thread(()=>sam.call(lily)).start()
+  // new Thread(()=>lily.call(sam)).start()
+
+  // live lock
+  new Thread(()=>sam.pickSide(lily)).start()
+  new Thread(()=>lily.pickSide(sam)).start()
