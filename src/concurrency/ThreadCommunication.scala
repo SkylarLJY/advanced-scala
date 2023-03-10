@@ -2,8 +2,10 @@ package concurrency
 
 import scala.collection.mutable
 import java.util.Random
+import scala.collection.immutable.LazyList.cons
+import javax.swing.plaf.metal.MetalTheme
 
-object ThreadCommunication extends App{
+object ThreadCommunication extends App:
   /* producer-consumer problem */
   // Synchronized expression: lock on the object - only AnyRef can be sychronized 
   // wait() - release lockand wait
@@ -46,36 +48,46 @@ object ThreadCommunication extends App{
     val buffer: mutable.Queue[Int] = new mutable.Queue[Int]
     val capacity = 3
 
-    val consumer = new Thread(()=>{
+    val consume: Runnable = ()=>{
       val random = new Random()
       while true do
         buffer.synchronized {
-          if buffer.isEmpty then buffer.wait()
+          while buffer.isEmpty do buffer.wait()
           val res = buffer.dequeue()
           println("consumer got " + res)
           buffer.notify()
         }
         Thread.sleep(random.nextInt(500))
-    })
+    } 
 
-    val producer = new Thread(()=>{
+    val produce: Runnable = () => {
       val random = new Random()
       var i = 0 
       while true do
         buffer.synchronized {
-          if buffer.size == capacity then buffer.wait()
+          while buffer.size == capacity do buffer.wait()
           buffer.enqueue(i)
           println("producer produced " + i)
           i += 1
           buffer.notify()
         }
         Thread.sleep(random.nextInt(500))
-    })
+    }
 
-    consumer.start()
-    producer.start()
+    val consumer = new Thread(consume)
+
+    val producer = new Thread(produce)
+
+
+    (0 to 3).foreach(_=>{
+      new Thread(consume).start()
+      new Thread(produce).start()
+      
+    })
+    
   
-  // bufferProdCons()
+  bufferProdCons()
 
   // multiple producers and consumers on the same buffer 
-}
+  // can't control if it's notifying a consumer or a producer when either calls notify()->check after waking up 
+  
