@@ -34,7 +34,7 @@ object FBoundedPolyMorphism {
   extension[A: Animal3] (a: A){
     def breed(using animal: Animal3[A]): List[A] = animal.breed(a)
   }
-  
+
   val d = new Dog
   d.breed 
 }
